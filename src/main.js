@@ -4,6 +4,12 @@ import router from './router'
 import { BootstrapVue, IconsPlugin } from 'bootstrap-vue'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import VueSweetalert2 from 'vue-sweetalert2';
+ 
+// If you don't need the styles, do not connect
+import 'sweetalert2/dist/sweetalert2.min.css';
+ 
+Vue.use(VueSweetalert2);
  
 Vue.use(VueAxios, axios)
 // Install BootstrapVue
