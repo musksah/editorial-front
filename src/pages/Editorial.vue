@@ -19,16 +19,11 @@
         <b-container fluid style="width:100%;">
           <b-row>
             <b-col style="border-right:solid 1px #B9B9B9">
-              <b-nav vertical class="w-35 ml-4 mt-4">
-                <b-nav-item active>Sucursales</b-nav-item>
-                <b-nav-item>Link</b-nav-item>
-                <b-nav-item>Another Link</b-nav-item>
-                <b-nav-item disabled>Disabled</b-nav-item>
-              </b-nav>
+              <NavSide></NavSide>
             </b-col>
             <b-col cols="9">
               <h1 class="ml-5 mb-4 mt-4">{{ nameC }}</h1>
-              <div class="ml-5">
+              <div class="ml-5 mr-4">
                 <b-table :items="items" :fields="fields" striped responsive="sm">
                   <template v-slot:cell(actions)="row">
                     <b-button
@@ -53,7 +48,7 @@
               </div>
               <b-button v-b-modal.modal-1 class="mt-4 ml-5">Registar {{ name }}</b-button>
 
-              <b-modal id="modal-1" :title="'Registro de '+name">
+              <b-modal id="modal-1" :title="'Registro de '+name" ok-only>
                 <b-form @submit.prevent="register">
                   <b-form-group id="input-group-1" label="Teléfono:" label-for="input-1">
                     <b-form-input
@@ -93,7 +88,43 @@
               </b-modal>
             </b-col>
           </b-row>
-          <b-modal :id="infoModal.id" :title="infoModal.title" ok-only @hide="resetInfoModal">
+          <b-modal :id="infoModal.id" :title="'Editar '+nameS" ok-only @hide="resetInfoModal">
+            <b-form @submit.prevent="register">
+              <b-form-group id="input-group-m1" label="Teléfono:" label-for="input-m1">
+                <b-form-input
+                  id="input-m1"
+                  v-model="infoModal.content.id_sucursal"
+                  type="number"
+                  required
+                  placeholder="Ingresar teléfono"
+                ></b-form-input>
+              </b-form-group>
+
+              <b-form-group id="input-group-2" label="Dirección:" label-for="input-2">
+                <b-form-input
+                  id="input-2"
+                  v-model="form.direccion"
+                  type="text"
+                  required
+                  placeholder="Ingresar dirección"
+                ></b-form-input>
+              </b-form-group>
+
+              <b-form-group id="input-group-3" label="Código de Sucursal:" label-for="input-3">
+                <b-form-input
+                  id="input-2"
+                  v-model="form.codigo_sucursal"
+                  type="text"
+                  required
+                  placeholder="Ingresar código"
+                ></b-form-input>
+              </b-form-group>
+              <!-- <b-form-group id="input-group-3" label="Food:" label-for="input-3">
+                    <b-form-select id="input-3" v-model="form.food" :options="foods" required></b-form-select>
+              </b-form-group>-->
+              <b-button type="submit" variant="primary">Registar</b-button>
+              <!-- <b-button type="reset" variant="danger">Reset</b-button> -->
+            </b-form>
             <pre>{{ infoModal.content }}</pre>
           </b-modal>
         </b-container>
@@ -104,6 +135,7 @@
 <script>
 // import { AgGridVue } from "ag-grid-vue";
 import CartBHeader from "@/components/Header";
+import NavSide from "@/components/NavSide";
 // import HeaderS from "@/components/HeaderSideBar";
 export default {
   data() {
@@ -114,10 +146,19 @@ export default {
         codigo_sucursal: ""
       },
       name: "sucursales",
+      nameS: "sucursal",
       nameC: "Sucursales",
       columnDefs: [],
       rowData: [],
-      fields: ["first_name", "last_name", "actions"],
+      fields: [
+        "actions",
+        "id_sucursal",
+        "telefono",
+        "direccion",
+        "codigo_sucursal",
+        "created_at",
+        "updated_at"
+      ],
       items: [
         {
           isActive: true,
@@ -138,12 +179,13 @@ export default {
       infoModal: {
         id: "info-modal",
         title: "",
-        content: ""
+        content: {}
       }
     };
   },
   components: {
-    CartBHeader
+    CartBHeader,
+    NavSide
     // AgGridVue
   },
   beforeMount() {
@@ -153,8 +195,8 @@ export default {
     getSucursales() {
       this.axios.get("http://127.0.0.1:8080/sucursal/list").then(response => {
         console.log(response.data);
-        // this.rowData = response.data.data;
-        // this.columnDefs = response.data.headers;
+        this.items = response.data.data;
+        // this.fields = response.data.headers;
         // this.columnDefs = [
         //   {
         //     headerName: "Cube",
@@ -191,9 +233,9 @@ export default {
       this.infoModal.title = "";
       this.infoModal.content = "";
     },
-    deleteRow(){
-      this.$swal('Hello Vue world!!!');
-    }
+    deleteRow() {
+      this.$swal("Hello Vue world!!!");
+    },
   },
   computed: {
     axiosParams() {
