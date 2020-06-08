@@ -26,12 +26,12 @@
               <div class="ml-5 mr-4">
                 <b-table :items="items" :fields="fields" striped responsive="sm">
                   <template v-slot:cell(actions)="row">
-                    <b-button
+                    <b-button v-if="showEdit"
                       size="sm"
                       @click="info(row.item, row.index, $event.target)"
                       class="mr-1"
                     >Editar</b-button>
-                    <b-button size="sm" @click="deleteRow">eliminar</b-button>
+                    <b-button size="sm" v-if="showEdit" @click="deleteRow(row.item)" variant="danger">eliminar</b-button>
                   </template>
                 </b-table>
                 <!-- <ag-grid-vue
@@ -145,13 +145,13 @@ export default {
         direccion: "",
         codigo_sucursal: ""
       },
+      showEdit:false,
       name: "sucursales",
       nameS: "sucursal",
       nameC: "Sucursales",
       columnDefs: [],
       rowData: [],
       fields: [
-        "actions",
         "id_sucursal",
         "telefono",
         "direccion",
@@ -233,9 +233,20 @@ export default {
       this.infoModal.title = "";
       this.infoModal.content = "";
     },
-    deleteRow() {
-      this.$swal("Hello Vue world!!!");
-    },
+    deleteRow(item) {
+      console.log(item.id_revista);
+      this.id_revista = item.id_revista;
+      this.axios
+        .post(
+          "http://127.0.0.1:8080/revista/delete",
+          this.axiomsParamDel
+        )
+        .then(response => {
+          console.log(response);
+          this.$swal("Información eliminada!!");
+          this.getRevistas();
+        });
+    }
   },
   computed: {
     axiosParams() {

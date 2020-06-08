@@ -14,12 +14,13 @@
                 <b-table :items="items" :fields="fields" striped responsive>
                   <template v-slot:cell(actions)="row">
                     <b-button
+                      v-if="showEdit"
                       size="sm"
                       @click="info(row.item, row.index, $event.target)"
                       class="mr-1"
                       variant="info"
                     >Editar</b-button>
-                    <b-button size="sm" variant="danger" @click="deleteRow">eliminar</b-button>
+                    <b-button size="sm" variant="danger" @click="deleteRow(row.item)">eliminar</b-button>
                   </template>
                   <!-- <template v-slot:head(titulo)="scope">
                     <div class="text-nowrap">Row ID</div>
@@ -36,7 +37,7 @@
                   <b-form-group id="input-group-1" label="Fecha:" label-for="input-1">
                     <b-form-input
                       id="input-1"
-                      v-model="form.fecha"
+                      v-model="form_article.fecha"
                       type="date"
                       required
                       placeholder="Ingresar fecha"
@@ -45,34 +46,34 @@
                   <b-form-group id="input-group-2" label="Título:" label-for="input-2">
                     <b-form-input
                       id="input-2"
-                      v-model="form.titulo"
+                      v-model="form_article.titulo"
                       type="text"
                       required
                       placeholder="Ingresar título"
                     ></b-form-input>
                   </b-form-group>
                   <b-form-group id="input-group-ar4" label="Contenido:" label-for="input-ar4">
-                    <b-form-input
-                      id="input-ar4"
-                      v-model="form.contenido"
-                      type="text"
-                      required
+                    <b-form-textarea
+                      id="textarea"
+                      v-model="form_article.contenido"
                       placeholder="Ingresar contenido"
-                    ></b-form-input>
+                      rows="3"
+                      max-rows="6"
+                    ></b-form-textarea>
                   </b-form-group>
-                  <b-form-group id="input-group-ar5" label="Revista:" label-for="input-ar5">
+                  <b-form-group id="input-group-ar7" label="Revista:" label-for="input-ar7">
                     <b-form-select
-                      id="input-ar5"
-                      v-model="form.id_sucursal"
-                      :options="options"
+                      id="input-ar7"
+                      v-model="form_article.id_numero_revista"
+                      :options="options_numero_revista"
                       required
                     ></b-form-select>
                   </b-form-group>
                   <b-form-group id="input-group-3" label="Periodista:" label-for="input-3">
                     <b-form-select
                       id="input-3"
-                      v-model="form.id_sucursal"
-                      :options="options"
+                      v-model="form_article.id_periodista"
+                      :options="options_periodista"
                       required
                     ></b-form-select>
                   </b-form-group>
@@ -202,6 +203,7 @@ import NavSide from "@/components/NavSide";
 export default {
   data() {
     return {
+      showEdit: false,
       form: {
         titulo: "",
         numero_registro: "",
@@ -209,14 +211,16 @@ export default {
         periodicidad: "",
         id_sucursal: null
       },
-      form_article:{
-        fecha:"",
-        titulo:"",
-        contenido:"",
-        id_numero_revista:"",
-        id_periodista:""
+      form_article: {
+        fecha: "",
+        titulo: "",
+        contenido: "",
+        id_numero_revista: null,
+        id_periodista: null
       },
       options: [],
+      options_periodista: [],
+      options_numero_revista: [],
       name: "revistas",
       nameS: "revista",
       nameC: "Revistas",
@@ -237,7 +241,8 @@ export default {
         id: "info-modal",
         title: "",
         content: {}
-      }
+      },
+      id_revista: null
     };
   },
   components: {
@@ -247,6 +252,8 @@ export default {
   beforeMount() {
     this.getRevistas();
     this.getSucursalesSelect();
+    this.getNumeroRevistasSelect();
+    this.getPeriodistasSelect();
   },
   methods: {
     getRevistas() {
@@ -255,30 +262,44 @@ export default {
         this.items = response.data.data;
       });
     },
+    getNumeroRevistasSelect() {
+      this.axios
+        .get("http://127.0.0.1:8080/revista/select-list-nr")
+        .then(response => {
+          console.log(response.data);
+          this.options_numero_revista = response.data;
+        });
+    },
     getSucursalesSelect() {
-      this.axios.get("http://127.0.0.1:8080/sucursal/select-list").then(response => {
-        console.log(response.data);
-        this.options = response.data;
-      });
+      this.axios
+        .get("http://127.0.0.1:8080/sucursal/select-list")
+        .then(response => {
+          console.log(response.data);
+          this.options = response.data;
+        });
     },
     getPeriodistasSelect() {
-      this.axios.get("http://127.0.0.1:8080/sucursal/select-list").then(response => {
-        console.log(response.data);
-        this.options = response.data;
-      });
+      this.axios
+        .get("http://127.0.0.1:8080/periodista/select-list")
+        .then(response => {
+          console.log(response.data);
+          this.options_periodista = response.data;
+        });
     },
     getSelect() {
-      this.axios.get("http://127.0.0.1:8080/sucursal/select-list").then(response => {
-        console.log(response.data);
-        this.options = response.data;
-      });
+      this.axios
+        .get("http://127.0.0.1:8080/sucursal/select-list")
+        .then(response => {
+          console.log(response.data);
+          this.options = response.data;
+        });
     },
     register() {
       this.axios
         .post("http://127.0.0.1:8080/revista/store", this.axiosParams)
         .then(response => {
           console.log(response.data);
-          this.$bvModal.hide('modal-1');
+          this.$bvModal.hide("modal-1");
           this.$swal("Información registrada!!");
           this.getRevistas();
         });
@@ -288,21 +309,37 @@ export default {
         .post("http://127.0.0.1:8080/articulo/store", this.axiosParamsAr)
         .then(response => {
           console.log(response.data);
-          this.$bvModal.hide('modal-article');
+          this.$bvModal.hide("modal-article");
           this.$swal("Información registrada!!");
         });
     },
-    info(item, index, button) {
-      this.infoModal.title = `Row index: ${index}`;
+    info(item) {
       this.infoModal.content = JSON.stringify(item, null, 2);
-      this.$root.$emit("bv::show::modal", this.infoModal.id, button);
+      this.axios
+        .post("http://127.0.0.1:8080/articulo/store", this.axiosParamsAr)
+        .then(response => {
+          console.log(response.data);
+          this.$bvModal.hide("modal-article");
+          this.$swal("Información registrada!!");
+        });
     },
     resetInfoModal() {
       this.infoModal.title = "";
       this.infoModal.content = "";
     },
-    deleteRow() {
-      this.$swal("Hello Vue world!!!");
+    deleteRow(item) {
+      console.log(item.id_revista);
+      this.id_revista = item.id_revista;
+      this.axios
+        .post(
+          "http://127.0.0.1:8080/revista/delete",
+          this.axiomsParamDel
+        )
+        .then(response => {
+          console.log(response);
+          this.$swal("Información eliminada!!");
+          this.getRevistas();
+        });
     }
   },
   computed: {
@@ -324,6 +361,11 @@ export default {
       params.append("id_periodista", this.form_article.id_periodista);
       return params;
     },
+    axiomsParamDel() {
+      const params = new URLSearchParams();
+      params.append("id_revista", this.id_revista);
+      return params;
+    }
   }
 };
 </script>
