@@ -1,2 +1,2 @@
 # editorial-front
-Front de la aplicación de Editorial.
+Frontend del sistema de un pequeño sistema de la adminitración de Editoriales.
